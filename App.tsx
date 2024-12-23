@@ -2,6 +2,7 @@ import { StatusBar } from 'expo-status-bar'
 import { useEffect, useState } from 'react'
 import { StyleSheet, Image, Text, TextInput, View, TouchableOpacity, Button } from 'react-native'
 import AsyncStorage, { useAsyncStorage } from '@react-native-async-storage/async-storage'
+import { SafeAreaView } from 'react-native-safe-area-context'
 type TaskType = {
   id: string
   title: string
@@ -62,53 +63,58 @@ export default function App() {
     initializeTasks()
   }, [])
   return (
-    <View style={styles.container}>
-      <View>
-        <TextInput
-          style={[styles.textInput, globalStyle.border]}
-          value={inputValue}
-          onChangeText={setInputValue}
-        />
-        <Button title="Add task"></Button>
-      </View>
-      {/* <TouchableOpacity onPress={() => storeTasks(tasks)}>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <View>
+          <TextInput
+            style={[styles.textInput, globalStyle.border]}
+            value={inputValue}
+            onChangeText={setInputValue}
+          />
+          <Button title="Add task"></Button>
+        </View>
+        {/* <TouchableOpacity onPress={() => storeTasks(tasks)}>
         <Text>Click</Text>
       </TouchableOpacity> */}
-      <View style={styles.tasksContainer}>
-        {tasks.map((task) => (
-          <View style={[styles.tasksList, globalStyle.border]} key={task.id}>
-            <View>
-              <Text>{task.title}</Text>
-            </View>
-            {/* подумать как это сделать */}
-            <TouchableOpacity onPress={() => showDescription(task.id)}>
-              <Image
-                style={
-                  task.id !== taskIdDescription ? styles.image : [styles.image, styles.reverseImage]
-                }
-                source={require('./assets/free-icon-down-arrow-5772127.png')}
-              />
-            </TouchableOpacity>
-            <Image style={styles.image} source={require('./assets/work-in-progress.png')} />
-            {task.id === taskIdDescription && (
-              <View style={styles.description}>
-                <Text onPress={hideDescription}>{task.description}</Text>
+        <View style={styles.tasksContainer}>
+          {tasks.map((task) => (
+            <View style={[styles.tasksList, globalStyle.border]} key={task.id}>
+              <View>
+                <Text>{task.title}</Text>
               </View>
-            )}
-          </View>
-        ))}
+              {/* подумать как это сделать */}
+              <TouchableOpacity onPress={() => showDescription(task.id)}>
+                <Image
+                  style={
+                    task.id !== taskIdDescription
+                      ? styles.image
+                      : [styles.image, styles.reverseImage]
+                  }
+                  source={require('./assets/free-icon-down-arrow-5772127.png')}
+                />
+              </TouchableOpacity>
+              <Image style={styles.image} source={require('./assets/work-in-progress.png')} />
+              {task.id === taskIdDescription && (
+                <View style={styles.description}>
+                  <Text onPress={hideDescription}>{task.description}</Text>
+                </View>
+              )}
+            </View>
+          ))}
+        </View>
+        <StatusBar style="auto" />
       </View>
-      <StatusBar style="auto" />
-    </View>
+    </SafeAreaView>
   )
 }
 
 const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: '#f5f5f5' },
   container: {
     flex: 1,
     backgroundColor: '#fff',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
   },
   tasksContainer: {
     width: '80%',
