@@ -1,30 +1,31 @@
 import { StatusBar } from 'expo-status-bar'
 import { useEffect, useState } from 'react'
 import { StyleSheet, Image, Text, TextInput, View, TouchableOpacity, Button } from 'react-native'
-import AsyncStorage, { useAsyncStorage } from '@react-native-async-storage/async-storage'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { AddTasksBlock } from './components/AddTasksBlock'
 type TaskType = {
   id: string
   title: string
   description: string
   taskStatus: 'inProgress' | 'Completed' | 'Cancelled'
 }
-// [
-//   { id: '1', title: 'hel1asd2l1o', description: 'some description1', taskStatus: 'inProgress' },
-//   { id: '2', title: 'hello2', description: 'some description2', taskStatus: 'Completed' },
-//   { id: '3', title: 'hello3', description: 'some description3', taskStatus: 'Cancelled' },
-//   {
-//     id: '4',
-//     title: 'hello4',
-//     description:
-//       'some descriptsome description4some description4some description4some descripti on4some descript ion4some descrip tion4some descript ion4ion4',
-//     taskStatus: 'Completed',
-//   },
-// ]
+
 export default function App() {
   const [inputValue, setInputValue] = useState('')
 
-  const [tasks, setTasks] = useState<TaskType[]>([])
+  const [tasks, setTasks] = useState<TaskType[]>([
+    // { id: '1', title: 'hel1asd2l1o', description: 'some description1', taskStatus: 'inProgress' },
+    // { id: '2', title: 'hello2', description: 'some description2', taskStatus: 'Completed' },
+    // { id: '3', title: 'hello3', description: 'some description3', taskStatus: 'Cancelled' },
+    // {
+    //   id: '4',
+    //   title: 'hello4',
+    //   description:
+    //     'some descriptsome description4some description4some description4some descripti on4some descript ion4some descrip tion4some descript ion4ion4',
+    //   taskStatus: 'Completed',
+    // },
+  ])
   const [taskIdDescription, setTaskIdDescription] = useState('')
 
   const showDescription = (id: string) => {
@@ -65,17 +66,10 @@ export default function App() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <View>
-          <TextInput
-            style={[styles.textInput, globalStyle.border]}
-            value={inputValue}
-            onChangeText={setInputValue}
-          />
-          <Button title="Add task"></Button>
-        </View>
+        <AddTasksBlock inputValue={inputValue} setInputValue={setInputValue} />
         {/* <TouchableOpacity onPress={() => storeTasks(tasks)}>
-        <Text>Click</Text>
-      </TouchableOpacity> */}
+          <Text>Click</Text>
+        </TouchableOpacity> */}
         <View style={styles.tasksContainer}>
           {tasks.map((task) => (
             <View style={[styles.tasksList, globalStyle.border]} key={task.id}>
