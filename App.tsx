@@ -1,20 +1,25 @@
 import { StatusBar } from 'expo-status-bar'
 import { useEffect, useState } from 'react'
-import { StyleSheet, Image, Text, TextInput, View, TouchableOpacity, Button } from 'react-native'
+import { StyleSheet, Image, Text, View, TouchableOpacity } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { AddTasksBlock } from './components/AddTasksBlock'
-import DatePickerComponent from './components/DatePicker'
+import { Header } from './components/Header'
+
 type TaskType = {
   id: string
   title: string
   description: string
   taskStatus: 'inProgress' | 'Completed' | 'Cancelled'
+  deadLine: string
+  location: string
 }
 
 export default function App() {
-  const [inputValue, setInputValue] = useState('')
-
+  const [inputTaskValue, setInputTaskValue] = useState('')
+  const [inputDescriptionValue, setInputDescriptionValue] = useState('')
+  const [inputLocationValue, setInputLocationValue] = useState('')
+  const [date, setDate] = useState(new Date())
   const [tasks, setTasks] = useState<TaskType[]>([
     // { id: '1', title: 'hel1asd2l1o', description: 'some description1', taskStatus: 'inProgress' },
     // { id: '2', title: 'hello2', description: 'some description2', taskStatus: 'Completed' },
@@ -28,6 +33,7 @@ export default function App() {
     // },
   ])
   const [taskIdDescription, setTaskIdDescription] = useState('')
+  const [showAddTaskBlock, setShowAddTaskBlock] = useState(false)
 
   const showDescription = (id: string) => {
     console.log(id)
@@ -64,10 +70,42 @@ export default function App() {
     }
     initializeTasks()
   }, [])
+
+  const createTask = () => {
+    const newTask: TaskType = {
+      id: new Date().toISOString(),
+      title: inputTaskValue,
+      description: inputDescriptionValue,
+      taskStatus: 'inProgress',
+      deadLine: date.getDate() + '/' + date.getMonth() + '/' + date.getFullYear(),
+      location: inputLocationValue,
+    }
+    setTasks([newTask, ...tasks])
+    storeTasks(tasks)
+  }
+  const deleteTask = (taskId: string) => {
+    const newTasks = tasks.filter((task) => task.id !== taskId)
+    setTasks(newTasks)
+    storeTasks(tasks)
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <AddTasksBlock inputValue={inputValue} setInputValue={setInputValue} />
+        <Header setShowAddTaskBlock={setShowAddTaskBlock} showAddTaskBlock={showAddTaskBlock} />
+        {showAddTaskBlock && (
+          <AddTasksBlock
+            inputTaskValue={inputTaskValue}
+            setInputTaskValue={setInputTaskValue}
+            inputDescriptionValue={inputDescriptionValue}
+            setInputDescriptionValue={setInputDescriptionValue}
+            inputLocationValue={inputLocationValue}
+            setInputLocationValue={setInputLocationValue}
+            date={date}
+            setDate={setDate}
+            createTask={createTask}
+          />
+        )}
         {/* <TouchableOpacity onPress={() => storeTasks(tasks)}>
           <Text>Click</Text>
         </TouchableOpacity> */}
@@ -77,6 +115,7 @@ export default function App() {
               <View>
                 <Text>{task.title}</Text>
               </View>
+
               {/* подумать как это сделать */}
               <TouchableOpacity onPress={() => showDescription(task.id)}>
                 <Image
@@ -94,9 +133,16 @@ export default function App() {
                   <Text onPress={hideDescription}>{task.description}</Text>
                 </View>
               )}
+              <TouchableOpacity onPress={() => deleteTask(task.id)}>
+                <Image
+                  style={[styles.image, { position: 'relative', left: 25 }]}
+                  source={require('./assets/close-cross-in-circular-outlined-interface-button-58253.png')}
+                />
+              </TouchableOpacity>
             </View>
           ))}
         </View>
+
         <StatusBar style="auto" />
       </View>
     </SafeAreaView>
@@ -112,8 +158,9 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   tasksContainer: {
-    width: '80%',
-    alignItems: 'center',
+    width: '100%',
+    alignItems: 'flex-start',
+    marginLeft: 32,
   },
   textInput: {
     backgroundColor: 'red',
@@ -125,7 +172,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     backgroundColor: 'yellow',
-    width: '60%',
+    width: '85%',
     marginVertical: 3,
   },
   description: {

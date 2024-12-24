@@ -1,16 +1,34 @@
-import { Button, TextInput, Text, View, StyleSheet } from 'react-native'
+import { Button, TextInput, Text, View, StyleSheet, TouchableOpacity } from 'react-native'
 import DatePickerComponent from './DatePicker'
+import { Header } from './Header'
 
 type PropsType = {
-  inputValue: string
-  setInputValue: (inputValue: string) => void
+  inputTaskValue: string
+  setInputTaskValue: (inputValue: string) => void
+  inputDescriptionValue: string
+  setInputDescriptionValue: (inputDescriptionValue: string) => void
+  inputLocationValue: string
+  setInputLocationValue: (inputLocationValue: string) => void
+  setDate: (date: Date) => void
+  date: Date
+  createTask: () => void
 }
 
 export const AddTasksBlock = (props: PropsType) => {
-  const { inputValue, setInputValue } = props
+  const {
+    inputTaskValue,
+    setInputTaskValue,
+    inputDescriptionValue,
+    setInputDescriptionValue,
+    inputLocationValue,
+    setInputLocationValue,
+    setDate,
+    date,
+    createTask,
+  } = props
+
   return (
     <View style={styles.inputsContainer}>
-      <Text style={styles.h1}> simple todo </Text>
       <View style={styles.row}>
         <View style={styles.inputBox}>
           <View style={styles.inputTitle}>
@@ -18,8 +36,8 @@ export const AddTasksBlock = (props: PropsType) => {
           </View>
           <TextInput
             style={[styles.textInput, globalStyle.border]}
-            value={inputValue}
-            onChangeText={setInputValue}
+            value={inputTaskValue}
+            onChangeText={setInputTaskValue}
           />
         </View>
         <View style={styles.inputBox}>
@@ -28,8 +46,8 @@ export const AddTasksBlock = (props: PropsType) => {
           </View>
           <TextInput
             style={[styles.textInput, globalStyle.border]}
-            value={inputValue}
-            onChangeText={setInputValue}
+            value={inputDescriptionValue}
+            onChangeText={setInputDescriptionValue}
           />
         </View>
       </View>
@@ -40,18 +58,35 @@ export const AddTasksBlock = (props: PropsType) => {
           </View>
           <TextInput
             style={[styles.textInput, globalStyle.border]}
-            value={inputValue}
-            onChangeText={setInputValue}
+            value={inputLocationValue}
+            onChangeText={setInputLocationValue}
           />
         </View>
         <View style={styles.inputBox}>
           <View style={styles.inputTitle}>
             <Text>Date and Time</Text>
           </View>
-          <DatePickerComponent />
+          <DatePickerComponent date={date} setDate={setDate} />
         </View>
       </View>
-      {/* <Button title="Add task"></Button> */}
+      <View style={styles.row}>
+        <View style={styles.inputBox}>
+          <View style={styles.inputTitle}>
+            <Text>Sort By</Text>
+          </View>
+          <TextInput
+            style={[styles.textInput, globalStyle.border]}
+            value={'sss'}
+            onChangeText={() => {}}
+          />
+        </View>
+        <View style={styles.inputBox}>
+          <View style={styles.inputTitle}></View>
+          <TouchableOpacity onPress={createTask} style={[styles.button, { margin: 19 }]}>
+            <Text>Add task</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   )
 }
@@ -61,7 +96,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    height: 210,
+    height: 250,
     backgroundColor: 'green',
   },
   inputBox: {
@@ -86,6 +121,18 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     width: '100%',
     marginLeft: 15,
+  },
+  button: {
+    backgroundColor: 'red',
+    width: 150,
+    height: 40,
+    marginBottom: 13,
+    borderWidth: 1,
+    borderColor: 'black',
+    borderStyle: 'solid',
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   row: { flex: 1, justifyContent: 'space-between', flexDirection: 'row' },
   h1: { fontSize: 30, fontWeight: 'bold', marginBottom: 10 },
