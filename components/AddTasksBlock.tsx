@@ -1,4 +1,5 @@
 import { Button, TextInput, Text, View, StyleSheet } from 'react-native'
+import DatePickerComponent from './DatePicker'
 
 type PropsType = {
   inputValue: string
@@ -47,11 +48,7 @@ export const AddTasksBlock = (props: PropsType) => {
           <View style={styles.inputTitle}>
             <Text>Date and Time</Text>
           </View>
-          <TextInput
-            style={[styles.textInput, globalStyle.border]}
-            value={inputValue}
-            onChangeText={setInputValue}
-          />
+          <DatePickerComponent />
         </View>
       </View>
       {/* <Button title="Add task"></Button> */}

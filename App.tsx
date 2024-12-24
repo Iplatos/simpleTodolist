@@ -4,6 +4,7 @@ import { StyleSheet, Image, Text, TextInput, View, TouchableOpacity, Button } fr
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { AddTasksBlock } from './components/AddTasksBlock'
+import DatePickerComponent from './components/DatePicker'
 type TaskType = {
   id: string
   title: string
