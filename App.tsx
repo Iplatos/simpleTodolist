@@ -1,10 +1,10 @@
-import { StatusBar } from 'expo-status-bar'
-import { useEffect, useState } from 'react'
-import { StyleSheet, Image, Text, View, TouchableOpacity } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { StyleSheet, Image, Text, View, TouchableOpacity, FlatList, StatusBar } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { AddTasksBlock } from './components/AddTasksBlock'
+
 import { Header } from './components/Header'
+import { AddTasksBlock } from './components/AddTasksBlock'
 
 type TaskType = {
   id: string
@@ -20,28 +20,18 @@ export default function App() {
   const [inputDescriptionValue, setInputDescriptionValue] = useState('')
   const [inputLocationValue, setInputLocationValue] = useState('')
   const [date, setDate] = useState(new Date())
-  const [tasks, setTasks] = useState<TaskType[]>([
-    // { id: '1', title: 'hel1asd2l1o', description: 'some description1', taskStatus: 'inProgress' },
-    // { id: '2', title: 'hello2', description: 'some description2', taskStatus: 'Completed' },
-    // { id: '3', title: 'hello3', description: 'some description3', taskStatus: 'Cancelled' },
-    // {
-    //   id: '4',
-    //   title: 'hello4',
-    //   description:
-    //     'some descriptsome description4some description4some description4some descripti on4some descript ion4some descrip tion4some descript ion4ion4',
-    //   taskStatus: 'Completed',
-    // },
-  ])
+  const [tasks, setTasks] = useState<TaskType[]>([])
   const [taskIdDescription, setTaskIdDescription] = useState('')
   const [showAddTaskBlock, setShowAddTaskBlock] = useState(false)
 
   const showDescription = (id: string) => {
-    console.log(id)
     id === taskIdDescription ? hideDescription() : setTaskIdDescription(id)
   }
+
   const hideDescription = () => {
-    setTaskIdDescription('0')
+    setTaskIdDescription('')
   }
+
   const storeTasks = async (tasks: TaskType[]) => {
     try {
       const jsonValue = JSON.stringify(tasks)
@@ -50,6 +40,12 @@ export default function App() {
       console.error('Ошибка при сохранении задач', error)
     }
   }
+  const sortTasksByDate = (sort: 'asc' | 'desc') => {
+    sort === 'asc'
+      ? setTasks([...tasks.sort((a, b) => new Date(a.id).getTime() - new Date(b.id).getTime())])
+      : setTasks([...tasks.sort((a, b) => new Date(b.id).getTime() - new Date(a.id).getTime())])
+  }
+
   const readTasks = async () => {
     try {
       const jsonValue = await AsyncStorage.getItem('tasks')
@@ -58,14 +54,12 @@ export default function App() {
       console.error('Ошибка при чтении задач', error)
     }
   }
+
   useEffect(() => {
     const initializeTasks = async () => {
       const storedTasks = await readTasks()
-      console.log(storedTasks)
       if (storedTasks) {
         setTasks(storedTasks)
-      } else {
-        console.log('error cant find tasks')
       }
     }
     initializeTasks()
@@ -77,18 +71,50 @@ export default function App() {
       title: inputTaskValue,
       description: inputDescriptionValue,
       taskStatus: 'inProgress',
-      deadLine: date.getDate() + '/' + date.getMonth() + '/' + date.getFullYear(),
+      deadLine: `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()} ${
+        date.getHours() < 10 && '0' + date.getHours()
+      }:${date.getMinutes()}`,
       location: inputLocationValue,
     }
-    setTasks([newTask, ...tasks])
-    storeTasks(tasks)
+    const updatedTasks = [newTask, ...tasks]
+    setTasks(updatedTasks)
+    storeTasks(updatedTasks)
+    setInputTaskValue('')
+    setInputDescriptionValue('')
+    setInputLocationValue('')
+    setDate(new Date())
+    setTaskIdDescription('')
+  }
+  const changeTaskStatus = (id: string, status: 'inProgress' | 'Completed' | 'Cancelled') => {
+    const statusArray: Array<'inProgress' | 'Completed' | 'Cancelled'> = [
+      'inProgress',
+      'Completed',
+      'Cancelled',
+    ]
+    const index = statusArray.findIndex((currentStatus) => currentStatus === status)
+    const statusNumber = index === 2 ? 0 : index + 1
+    const newTasks = tasks.map((task) =>
+      task.id === id ? { ...task, taskStatus: statusArray[statusNumber] } : task
+    )
+    setTasks(newTasks)
+    storeTasks(newTasks)
   }
   const deleteTask = (taskId: string) => {
     const newTasks = tasks.filter((task) => task.id !== taskId)
     setTasks(newTasks)
-    storeTasks(tasks)
+    storeTasks(newTasks)
   }
 
+  const sortByStatus = (status: string | null) => {
+    console.log(status)
+
+    if (!status) {
+      sortTasksByDate('asc')
+    }
+    const sortedTasks = tasks.filter((task) => task.taskStatus === status)
+    const sortedTasksw = tasks.filter((task) => task.taskStatus !== status)
+    setTasks([...sortedTasks, ...sortedTasksw])
+  }
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
@@ -104,46 +130,86 @@ export default function App() {
             date={date}
             setDate={setDate}
             createTask={createTask}
+            sortTasksByDate={sortTasksByDate}
+            sortByStatus={sortByStatus}
           />
         )}
-        {/* <TouchableOpacity onPress={() => storeTasks(tasks)}>
-          <Text>Click</Text>
-        </TouchableOpacity> */}
-        <View style={styles.tasksContainer}>
-          {tasks.map((task) => (
-            <View style={[styles.tasksList, globalStyle.border]} key={task.id}>
-              <View>
-                <Text>{task.title}</Text>
-              </View>
-
-              {/* подумать как это сделать */}
-              <TouchableOpacity onPress={() => showDescription(task.id)}>
-                <Image
-                  style={
-                    task.id !== taskIdDescription
-                      ? styles.image
-                      : [styles.image, styles.reverseImage]
-                  }
-                  source={require('./assets/free-icon-down-arrow-5772127.png')}
-                />
-              </TouchableOpacity>
-              <Image style={styles.image} source={require('./assets/work-in-progress.png')} />
-              {task.id === taskIdDescription && (
-                <View style={styles.description}>
-                  <Text onPress={hideDescription}>{task.description}</Text>
+        <View>
+          <FlatList
+            data={tasks}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <View style={[styles.tasksList, globalStyle.border]} key={item.id}>
+                <View>
+                  <Text
+                    style={
+                      item.taskStatus === 'Cancelled' && {
+                        textDecorationLine: 'line-through',
+                        color: 'grey',
+                      }
+                    }
+                  >
+                    {item.title}
+                  </Text>
                 </View>
-              )}
-              <TouchableOpacity onPress={() => deleteTask(task.id)}>
-                <Image
-                  style={[styles.image, { position: 'relative', left: 25 }]}
-                  source={require('./assets/close-cross-in-circular-outlined-interface-button-58253.png')}
-                />
-              </TouchableOpacity>
-            </View>
-          ))}
+                <View style={styles.statusDateBlock}>
+                  <TouchableOpacity onPress={() => changeTaskStatus(item.id, item.taskStatus)}>
+                    {item.taskStatus === 'Cancelled' ? (
+                      <Image
+                        style={styles.image}
+                        source={require('./assets/free-icon-cancelled-5268671.png')}
+                      />
+                    ) : item.taskStatus === 'inProgress' ? (
+                      <Image
+                        style={styles.image}
+                        source={require('./assets/work-in-progress.png')}
+                      />
+                    ) : (
+                      <Image
+                        style={styles.image}
+                        source={require('./assets/free-icon-done-15190698.png')}
+                      />
+                    )}
+                  </TouchableOpacity>
+                  <View style={{}}>
+                    <Text>{item.deadLine}</Text>
+                    <TouchableOpacity
+                      style={styles.showMoreButton}
+                      onPress={() => showDescription(item.id)}
+                    >
+                      <View style={styles.showMoreOrLessBlock}>
+                        <Image
+                          style={
+                            item.id !== taskIdDescription
+                              ? styles.showDescriptionImage
+                              : [styles.showDescriptionImage, styles.reverseImage]
+                          }
+                          source={require('./assets/free-icon-down-arrow-5772127.png')}
+                        />
+                        <Text>{item.id === taskIdDescription ? 'show less ' : 'show more'}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                  {item.id === taskIdDescription && (
+                    <View style={styles.description}>
+                      <Text onPress={hideDescription}>description:{item.description}</Text>
+                      <Text onPress={hideDescription}>location:{item.location}</Text>
+                    </View>
+                  )}
+                  <TouchableOpacity
+                    style={[styles.deleteButton, { position: 'absolute', left: 165 }]}
+                    onPress={() => deleteTask(item.id)}
+                  >
+                    <Image
+                      style={styles.image}
+                      source={require('./assets/close-cross-in-circular-outlined-interface-button-58253.png')}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+          />
         </View>
-
-        <StatusBar style="auto" />
       </View>
     </SafeAreaView>
   )
@@ -157,35 +223,55 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-start',
   },
+  showMoreOrLessBlock: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+  },
   tasksContainer: {
     width: '100%',
     alignItems: 'flex-start',
     marginLeft: 32,
   },
-  textInput: {
-    backgroundColor: 'red',
-    width: 200,
-    fontSize: 18,
-    padding: 10,
+  showDescriptionImage: {
+    width: 10,
+    height: 10,
+    marginTop: 3,
   },
+  showMoreButton: {
+    backgroundColor: 'rgb(0, 115, 230)',
+    borderRadius: 20,
+  },
+  statusDateBlock: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 7,
+  },
+
   tasksList: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: 'yellow',
-    width: '85%',
+    alignItems: 'center',
+    backgroundColor: 'white',
+    width: '88%',
+    height: 40,
     marginVertical: 3,
+    paddingHorizontal: 5,
+    borderRadius: 10,
   },
   description: {
-    backgroundColor: 'green',
+    backgroundColor: '#a9b46ff1',
     position: 'absolute',
     zIndex: 1,
-    width: 120,
-    top: 19,
-    left: 25,
+    width: 240,
+    right: 10,
+    top: 39,
+    padding: 10,
   },
   image: {
-    width: 16,
-    height: 16,
+    width: 35,
+    height: 35,
+    marginTop: 2,
   },
   reverseImage: {
     transform: [{ rotate: '180deg' }],

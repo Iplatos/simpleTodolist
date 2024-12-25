@@ -91,7 +91,7 @@ export const AddTasksBlock = (props: PropsType) => {
           <Text style={{ color: 'white' }}>Sort By</Text>
           <View style={styles.sortBlock}>
             <TouchableOpacity
-              style={[styles.button, { flexDirection: 'row', backgroundColor: 'red' }]}
+              style={[styles.button, { flexDirection: 'row' }]}
               onPress={sortByDate}
             >
               <Text style={{ color: 'white' }}>Date</Text>
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     marginLeft: 15,
   },
   button: {
-    backgroundColor: 'red',
+    backgroundColor: 'black',
     borderRadius: 10,
     width: 150,
     height: 40,
