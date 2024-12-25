@@ -73,7 +73,7 @@ export default function App() {
       taskStatus: 'inProgress',
       deadLine: `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()} ${
         date.getHours() < 10 && '0' + date.getHours()
-      }:${date.getMinutes()}`,
+      }:${date.getMinutes() < 10 && '0' + date.getMinutes()}`,
       location: inputLocationValue,
     }
     const updatedTasks = [newTask, ...tasks]

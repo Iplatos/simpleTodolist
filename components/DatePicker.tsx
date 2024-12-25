@@ -33,7 +33,7 @@ const DatePickerComponent: React.FC<PropsType> = ({ date, setDate }) => {
           {date
             ? `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()} ${
                 date.getHours() < 10 && '0' + date.getHours()
-              }:${date.getMinutes()}`
+              }:${date.getMinutes() < 10 && '0' + date.getMinutes()}`
             : 'Выберите дату и время'}
         </Text>
       </TouchableOpacity>
