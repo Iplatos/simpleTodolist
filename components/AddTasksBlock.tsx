@@ -136,8 +136,14 @@ export const AddTasksBlock = (props: PropsType) => {
         </View>
         <View style={styles.inputBox}>
           <View style={styles.inputTitle}></View>
-          <TouchableOpacity onPress={createTask} style={[styles.button, { margin: 19 }]}>
-            <Text style={{ color: 'white' }}>Add task</Text>
+          <TouchableOpacity
+            disabled={inputTaskValue.length > 13}
+            onPress={createTask}
+            style={[styles.button, { margin: 19 }]}
+          >
+            <Text style={{ color: 'white' }}>
+              {inputTaskValue.length > 13 ? 'title should be small' : 'Add task'}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

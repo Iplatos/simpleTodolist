@@ -171,7 +171,7 @@ export default function App() {
                       />
                     )}
                   </TouchableOpacity>
-                  <View style={{}}>
+                  <View>
                     <Text>{item.deadLine}</Text>
                     <TouchableOpacity
                       style={styles.showMoreButton}
@@ -197,7 +197,7 @@ export default function App() {
                     </View>
                   )}
                   <TouchableOpacity
-                    style={[styles.deleteButton, { position: 'absolute', left: 165 }]}
+                    style={{ position: 'absolute', left: 165 }}
                     onPress={() => deleteTask(item.id)}
                   >
                     <Image
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   description: {
-    backgroundColor: '#a9b46ff1',
+    backgroundColor: '#f2f2f2f1',
     position: 'absolute',
     zIndex: 1,
     width: 240,
