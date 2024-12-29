@@ -1,23 +1,20 @@
-import { Button, TextInput, Text, View, StyleSheet, TouchableOpacity, Image } from 'react-native'
-import { Header } from './Header'
-import DatePickerComponent from './DatePicker'
+import { TextInput, Text, View, StyleSheet, TouchableOpacity, Image } from 'react-native'
+import { DatePickerComponent } from './DatePicker'
 import { useState } from 'react'
+import { AddTasksBlockPropsType } from '../types/types'
 
-type PropsType = {
-  inputTaskValue: string
-  setInputTaskValue: (inputValue: string) => void
-  inputDescriptionValue: string
-  setInputDescriptionValue: (inputDescriptionValue: string) => void
-  inputLocationValue: string
-  setInputLocationValue: (inputLocationValue: string) => void
-  setDate: (date: Date) => void
-  date: Date
-  createTask: () => void
-  sortTasksByDate: (sort: 'asc' | 'desc') => void
-  sortByStatus: (status: string | null) => void
-}
+import * as Yup from 'yup'
+import { Formik } from 'formik'
+import { globalStyle } from '../App'
 
-export const AddTasksBlock = (props: PropsType) => {
+export const taskValidationSchema = Yup.object().shape({
+  title: Yup.string()
+    .min(4, 'Title is too short!')
+    .max(13, 'Title is too long!')
+    .required('Title is required'),
+})
+
+export const AddTasksBlock = (props: AddTasksBlockPropsType) => {
   const [sortTasks, setSortTasks] = useState<'asc' | 'desc'>('asc')
   const [sortStatusIndex, setSortStatusIndex] = useState(0)
   const {
@@ -38,116 +35,134 @@ export const AddTasksBlock = (props: PropsType) => {
     sortTasksByDate(sortTasks)
     setSortTasks(sortTasks === 'asc' ? 'desc' : 'asc')
   }
+
   const changeTasksStatusFilter = () => {
     sortStatusIndex >= 3 ? setSortStatusIndex(0) : setSortStatusIndex(sortStatusIndex + 1)
     sortArray[sortStatusIndex]
     sortByStatus(sortArray[sortStatusIndex])
-    console.log(sortStatusIndex)
   }
-  return (
-    <View style={styles.inputsContainer}>
-      <View style={styles.row}>
-        <View style={styles.inputBox}>
-          <View style={styles.inputTitle}>
-            <Text style={{ color: 'white' }}>Task Title</Text>
-          </View>
-          <TextInput
-            style={[styles.textInput, globalStyle.border]}
-            value={inputTaskValue}
-            onChangeText={setInputTaskValue}
-          />
-        </View>
-        <View style={styles.inputBox}>
-          <View style={styles.inputTitle}>
-            <Text style={{ color: 'white' }}>Task Description</Text>
-          </View>
-          <TextInput
-            style={[styles.textInput, globalStyle.border]}
-            value={inputDescriptionValue}
-            onChangeText={setInputDescriptionValue}
-          />
-        </View>
-      </View>
-      <View style={styles.row}>
-        <View style={styles.inputBox}>
-          <View style={styles.inputTitle}>
-            <Text style={{ color: 'white' }}>Location </Text>
-          </View>
-          <TextInput
-            style={[styles.textInput, globalStyle.border]}
-            value={inputLocationValue}
-            onChangeText={setInputLocationValue}
-          />
-        </View>
-        <View style={styles.inputBox}>
-          <View style={styles.inputTitle}>
-            <Text style={{ color: 'white' }}>Date and Time</Text>
-          </View>
-          <DatePickerComponent date={date} setDate={setDate} />
-        </View>
-      </View>
-      <View style={styles.row}>
-        <View style={styles.inputBox}>
-          <Text style={{ color: 'white' }}>Sort By</Text>
-          <View style={styles.sortBlock}>
-            <TouchableOpacity
-              style={[styles.button, { flexDirection: 'row' }]}
-              onPress={sortByDate}
-            >
-              <Text style={{ color: 'white' }}>Date</Text>
-              <Image
-                style={
-                  sortTasks !== 'asc'
-                    ? { width: 15, height: 15, transform: [{ rotate: '180deg' }] }
-                    : { width: 15, height: 15 }
-                }
-                source={require('./../assets/free-icon-down-arrow-5772127.png')}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={changeTasksStatusFilter}
-              style={[styles.button, { flexDirection: 'row' }]}
-            >
-              <Text style={{ color: 'white' }}>Status</Text>
 
-              {sortStatusIndex === 1 ? (
-                <Image
-                  style={{ width: 15, height: 15 }}
-                  source={require('./../assets/free-icon-dot-9383446.png')}
-                />
-              ) : sortStatusIndex === 2 ? (
-                <Image
-                  style={{ width: 15, height: 15 }}
-                  source={require('./../assets/work-in-progress.png')}
-                />
-              ) : sortStatusIndex === 3 ? (
-                <Image
-                  style={{ width: 15, height: 15 }}
-                  source={require('./../assets/free-icon-done-15190698.png')}
-                />
-              ) : (
-                <Image
-                  style={{ width: 15, height: 15 }}
-                  source={require('./../assets/free-icon-cancelled-5268671.png')}
-                />
+  return (
+    <Formik
+      initialValues={{ title: '' }}
+      onSubmit={(values, { resetForm }) => {
+        setInputTaskValue(values.title)
+
+        createTask()
+        resetForm()
+      }}
+      validationSchema={taskValidationSchema}
+    >
+      {({ handleChange, handleSubmit, values, errors, touched }) => (
+        <View style={styles.inputsContainer}>
+          <View style={styles.row}>
+            <View style={styles.inputBox}>
+              <View style={styles.inputTitle}>
+                <Text style={{ color: 'white' }}>Task Title</Text>
+              </View>
+              <TextInput
+                style={[styles.textInput, globalStyle.border]}
+                onChangeText={(text) => {
+                  handleChange('title')(text)
+                  setInputTaskValue(text)
+                }}
+                value={values.title}
+              />
+
+              {touched.title && errors.title && (
+                <Text style={styles.errorMessage}>{errors.title}</Text>
               )}
-            </TouchableOpacity>
+            </View>
+            <View style={styles.inputBox}>
+              <View style={styles.inputTitle}>
+                <Text style={{ color: 'white' }}>Task Description</Text>
+              </View>
+              <TextInput
+                style={[styles.textInput, globalStyle.border]}
+                value={inputDescriptionValue}
+                onChangeText={setInputDescriptionValue}
+              />
+            </View>
+          </View>
+          <View style={styles.row}>
+            <View style={styles.inputBox}>
+              <View style={styles.inputTitle}>
+                <Text style={{ color: 'white' }}>Location </Text>
+              </View>
+              <TextInput
+                style={[styles.textInput, globalStyle.border]}
+                value={inputLocationValue}
+                onChangeText={setInputLocationValue}
+              />
+            </View>
+            <View style={styles.inputBox}>
+              <View style={styles.inputTitle}>
+                <Text style={{ color: 'white' }}>Date and Time</Text>
+              </View>
+              <DatePickerComponent date={date} setDate={setDate} />
+            </View>
+          </View>
+          <View style={styles.row}>
+            <View style={styles.inputBox}>
+              <Text style={{ color: 'white' }}>Sort By</Text>
+              <View style={styles.sortBlock}>
+                <TouchableOpacity
+                  style={[styles.button, { flexDirection: 'row' }]}
+                  onPress={sortByDate}
+                >
+                  <Text style={{ color: 'white' }}>Date</Text>
+                  <Image
+                    style={
+                      sortTasks !== 'asc'
+                        ? [styles.image, { transform: [{ rotate: '180deg' }] }]
+                        : styles.image
+                    }
+                    source={require('./../assets/free-icon-down-arrow-5772127.png')}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={changeTasksStatusFilter}
+                  style={[styles.button, { flexDirection: 'row' }]}
+                >
+                  <Text style={{ color: 'white' }}>Status</Text>
+
+                  {sortStatusIndex === 1 ? (
+                    <Image
+                      style={styles.image}
+                      source={require('./../assets/free-icon-dot-9383446.png')}
+                    />
+                  ) : sortStatusIndex === 2 ? (
+                    <Image
+                      style={styles.image}
+                      source={require('./../assets/work-in-progress.png')}
+                    />
+                  ) : sortStatusIndex === 3 ? (
+                    <Image
+                      style={styles.image}
+                      source={require('./../assets/free-icon-done-15190698.png')}
+                    />
+                  ) : (
+                    <Image
+                      style={styles.image}
+                      source={require('./../assets/free-icon-cancelled-5268671.png')}
+                    />
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+            <View style={styles.inputBox}>
+              <View style={styles.inputTitle}></View>
+              <TouchableOpacity
+                onPress={() => handleSubmit()}
+                style={[styles.button, { margin: 19 }]}
+              >
+                <Text style={{ color: 'white' }}>Add task</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-        <View style={styles.inputBox}>
-          <View style={styles.inputTitle}></View>
-          <TouchableOpacity
-            disabled={inputTaskValue.length > 13}
-            onPress={createTask}
-            style={[styles.button, { margin: 19 }]}
-          >
-            <Text style={{ color: 'white' }}>
-              {inputTaskValue.length > 13 ? 'title should be small' : 'Add task'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </View>
+      )}
+    </Formik>
   )
 }
 const styles = StyleSheet.create({
@@ -203,16 +218,8 @@ const styles = StyleSheet.create({
   row: { flex: 1, justifyContent: 'space-between', flexDirection: 'row' },
   h1: { fontSize: 30, fontWeight: 'bold', marginBottom: 10 },
   image: {
-    width: 35,
-    height: 35,
-    marginTop: 2,
+    width: 15,
+    height: 15,
   },
-})
-
-export const globalStyle = StyleSheet.create({
-  border: {
-    borderWidth: 1,
-    borderColor: 'black',
-    borderStyle: 'solid',
-  },
+  errorMessage: { color: '#ae0606', position: 'absolute', top: 55, right: 10 },
 })

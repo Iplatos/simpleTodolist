@@ -1,19 +1,11 @@
 import React, { useEffect, useState } from 'react'
-import { StyleSheet, Image, Text, View, TouchableOpacity, FlatList, StatusBar } from 'react-native'
-import AsyncStorage from '@react-native-async-storage/async-storage'
+import { StyleSheet, Image, Text, View, TouchableOpacity, FlatList } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-
 import { Header } from './components/Header'
 import { AddTasksBlock } from './components/AddTasksBlock'
-
-type TaskType = {
-  id: string
-  title: string
-  description: string
-  taskStatus: 'inProgress' | 'Completed' | 'Cancelled'
-  deadLine: string
-  location: string
-}
+import { TaskType } from './types/types'
+import { createId, deadlineCorrectFormat } from './helpers/dateHelpers'
+import { readTasks, storeTasks } from './tasks/asynkStorage'
 
 export default function App() {
   const [inputTaskValue, setInputTaskValue] = useState('')
@@ -32,27 +24,14 @@ export default function App() {
     setTaskIdDescription('')
   }
 
-  const storeTasks = async (tasks: TaskType[]) => {
-    try {
-      const jsonValue = JSON.stringify(tasks)
-      await AsyncStorage.setItem('tasks', jsonValue)
-    } catch (error) {
-      console.error('Ошибка при сохранении задач', error)
-    }
-  }
   const sortTasksByDate = (sort: 'asc' | 'desc') => {
     sort === 'asc'
-      ? setTasks([...tasks.sort((a, b) => new Date(a.id).getTime() - new Date(b.id).getTime())])
-      : setTasks([...tasks.sort((a, b) => new Date(b.id).getTime() - new Date(a.id).getTime())])
-  }
-
-  const readTasks = async () => {
-    try {
-      const jsonValue = await AsyncStorage.getItem('tasks')
-      return jsonValue != null ? JSON.parse(jsonValue) : null
-    } catch (error) {
-      console.error('Ошибка при чтении задач', error)
-    }
+      ? setTasks([
+          ...tasks.sort((a, b) => new Date(a.deadLine).getTime() - new Date(b.deadLine).getTime()),
+        ])
+      : setTasks([
+          ...tasks.sort((a, b) => new Date(b.deadLine).getTime() - new Date(a.deadLine).getTime()),
+        ])
   }
 
   useEffect(() => {
@@ -67,13 +46,11 @@ export default function App() {
 
   const createTask = () => {
     const newTask: TaskType = {
-      id: new Date().toISOString(),
+      id: createId(),
       title: inputTaskValue,
       description: inputDescriptionValue,
       taskStatus: 'inProgress',
-      deadLine: `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()} ${
-        date.getHours() < 10 && '0' + date.getHours()
-      }:${date.getMinutes() < 10 && '0' + date.getMinutes()}`,
+      deadLine: date.toISOString(),
       location: inputLocationValue,
     }
     const updatedTasks = [newTask, ...tasks]
@@ -85,6 +62,7 @@ export default function App() {
     setDate(new Date())
     setTaskIdDescription('')
   }
+
   const changeTaskStatus = (id: string, status: 'inProgress' | 'Completed' | 'Cancelled') => {
     const statusArray: Array<'inProgress' | 'Completed' | 'Cancelled'> = [
       'inProgress',
@@ -106,14 +84,12 @@ export default function App() {
   }
 
   const sortByStatus = (status: string | null) => {
-    console.log(status)
-
     if (!status) {
       sortTasksByDate('asc')
     }
     const sortedTasks = tasks.filter((task) => task.taskStatus === status)
-    const sortedTasksw = tasks.filter((task) => task.taskStatus !== status)
-    setTasks([...sortedTasks, ...sortedTasksw])
+    const sortedRestTasks = tasks.filter((task) => task.taskStatus !== status)
+    setTasks([...sortedTasks, ...sortedRestTasks])
   }
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -172,7 +148,7 @@ export default function App() {
                     )}
                   </TouchableOpacity>
                   <View>
-                    <Text>{item.deadLine}</Text>
+                    <Text>{deadlineCorrectFormat(item.deadLine)}</Text>
                     <TouchableOpacity
                       style={styles.showMoreButton}
                       onPress={() => showDescription(item.id)}
@@ -278,7 +254,7 @@ const styles = StyleSheet.create({
   },
 })
 
-const globalStyle = StyleSheet.create({
+export const globalStyle = StyleSheet.create({
   border: {
     borderWidth: 1,
     borderColor: 'black',
