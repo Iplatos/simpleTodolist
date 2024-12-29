@@ -1,10 +1,7 @@
 import { TouchableOpacity, StyleSheet, Image, View, Text } from 'react-native'
+import { HeaderPropsType } from '../types/types'
 
-type PropsType = {
-  showAddTaskBlock: boolean
-  setShowAddTaskBlock: (showAddTaskBlock: boolean) => void
-}
-export const Header = (props: PropsType) => {
+export const Header = (props: HeaderPropsType) => {
   const { setShowAddTaskBlock, showAddTaskBlock } = props
   return (
     <View style={styles.buttonAndTitleBlock}>

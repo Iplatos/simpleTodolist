@@ -1,13 +1,11 @@
 import React, { useState } from 'react'
-import { View, Platform, StyleSheet, Text, TouchableOpacity } from 'react-native'
+import { View, StyleSheet, Text, TouchableOpacity } from 'react-native'
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker'
+import { DatePickerPropsType } from '../types/types'
+import { getDateForButton } from '../helpers/dateHelpers'
 
-type PropsType = {
-  date: Date
-  setDate: (date: Date) => void
-}
-
-const DatePickerComponent: React.FC<PropsType> = ({ date, setDate }) => {
+export const DatePickerComponent = (props: DatePickerPropsType) => {
+  const { date, setDate } = props
   const [show, setShow] = useState(false)
   const [mode, setMode] = useState<'date' | 'time'>('date')
 
@@ -29,13 +27,7 @@ const DatePickerComponent: React.FC<PropsType> = ({ date, setDate }) => {
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.button} onPress={showDateTimePicker}>
-        <Text style={{ fontSize: 16, color: 'white' }}>
-          {date
-            ? `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()} ${
-                date.getHours() < 10 && '0' + date.getHours()
-              }:${date.getMinutes() < 10 && '0' + date.getMinutes()}`
-            : 'Выберите дату и время'}
-        </Text>
+        <Text style={{ fontSize: 16, color: 'white' }}>{getDateForButton(date)}</Text>
       </TouchableOpacity>
       {show && (
         <DateTimePicker
@@ -59,12 +51,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
   },
-  label: {
-    fontSize: 18,
-    marginBottom: 10,
-    textAlign: 'left',
-    width: '100%',
-  },
+
   button: {
     backgroundColor: 'rgb(107, 79, 187)',
     width: 150,
@@ -78,5 +65,3 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 })
-
-export default DatePickerComponent
